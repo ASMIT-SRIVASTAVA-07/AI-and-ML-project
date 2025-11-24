@@ -1,33 +1,37 @@
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
-import numpy as np
+import org.apache.commons.math3.fitting.WeightedObservedPoints;
+import org.apache.commons.math3.fitting.SimpleCurveFitter;
+import org.apache.commons.math3.analysis.function.Identity; // For linear function
 
-data = {
-    'Size_in_sqft': [1000, 1200, 1500, 1800, 2000, 2200, 2500, 2800, 3000, 3200],
-    'Bedrooms': [2, 3, 3, 4, 4, 4, 5, 5, 5, 6],
-    'Price': [200000, 250000, 300000, 380000, 420000, 450000, 500000, 550000, 600000, 650000]
+public class HousePricePrediction {
+
+  public static void main(String[] args) {
+        
+   double[] squareFootage = {1400, 1600, 1700, 1875, 1100, 1550};
+   double[] housePrices = {245, 280, 295, 340, 210, 260};
+
+       
+   WeightedObservedPoints obs = new WeightedObservedPoints();
+        for (int i = 0; i < squareFootage.length; i++) {
+            obs.add(squareFootage[i], housePrices[i]);
+   }
+
+       
+   SimpleCurveFitter fitter = SimpleCurveFitter.create(new Identity(), null, new double[]{1, 1});
+
+       
+   double[] params = fitter.fit(obs.toList());
+
+   double intercept = params[0];
+   double slope = params[1];
+
+  System.out.println("Linear Regression Equation: y = " + String.format("%.2f", slope) + "x + " + String.format("%.2f", intercept));
+
+   double newSquareFootage = 1650;
+   double predictedPrice = slope * newSquareFootage + intercept;
+   System.out.println("Predicted price for " + newSquareFootage + " sq ft: $" + String.format("%.2f", predictedPrice) + "k");
+
+   newSquareFootage = 2000;
+   predictedPrice = slope * newSquareFootage + intercept;
+   System.out.println("Predicted price for " + newSquareFootage + " sq ft: $" + String.format("%.2f", predictedPrice) + "k");
+    }
 }
-df = pd.DataFrame(data)
-
-X = df[['Size_in_sqft', 'Bedrooms']]
-y = df['Price']
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-model = LinearRegression()
-
-model.fit(X_train, y_train)
-
-y_pred = model.predict(X_test)
-
-mse = mean_squared_error(y_test, y_pred)
-r2 = r2_score(y_test, y_pred)
-
-print(f"Mean Squared Error: {mse:.2f}")
-print(f"R-squared: {r2:.2f}")
-
-new_house_features = pd.DataFrame([[2100, 4]], columns=['Size_in_sqft', 'Bedrooms'])
-predicted_price = model.predict(new_house_features)
-print(f"Predicted price for a 2100 sqft house with 4 bedrooms: ${predicted_price[0]:.2f}")
